@@ -82,6 +82,15 @@ export function ConfigureScreen({ onStart, midi }: ConfigureScreenProps) {
 
   return (
     <div className="screen configure-screen">
+      {detectFailed && !bpmDetected && (
+        <div className="clock-banner">
+          <span className="clock-banner-text">
+            no midi clock detected — on your op-xy: press <strong>com → m3</strong> and enable <strong>clock send</strong>
+          </span>
+          <button className="clock-banner-dismiss" onClick={() => setDetectFailed(false)}>×</button>
+        </div>
+      )}
+
       <span className="section-label">tracks</span>
 
       <div className="track-grid">
@@ -140,7 +149,6 @@ export function ConfigureScreen({ onStart, midi }: ConfigureScreenProps) {
               {detecting ? 'reading...' : bpmDetected ? `${tempo} bpm` : 'detect'}
             </button>
             {bpmDetected && <span className="auto-detected">from op-xy</span>}
-            {detectFailed && <span className="detect-hint">no clock — press com → m3 on op-xy, enable clock send</span>}
           </div>
         </div>
 
