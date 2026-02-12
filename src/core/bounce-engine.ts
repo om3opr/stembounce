@@ -164,15 +164,15 @@ export class BounceEngine {
     if (this.isSilent(left, right)) {
       if (beat1Ms === null) {
         // No clock AND silent → transport + clock are both off
-        warning = 'recorded audio is silent and no midi clock detected. on your op-xy: press com → m3 and enable transport receive + clock send.';
+        warning = 'recorded audio is silent and no midi clock detected. on your op-xy: press com → m3 and set clock and notes to "in".';
       } else {
         // Got clock but silent → transport might work but mute CC isn't being received
-        warning = 'recorded audio is silent — the op-xy may not be responding to mute/unmute. on your op-xy: press com → m3 and make sure "other" (cc) receive is enabled.';
+        warning = 'recorded audio is silent — the op-xy may not be responding to mute/unmute. on your op-xy: press com → m3 and make sure notes is set to "in".';
       }
       console.warn(`[Bounce] WARNING: ${warning}`);
     } else if (beat1Ms === null && passIndex === 1) {
       // Audio is fine but no clock — alignment may be off
-      warning = 'no midi clock detected — stems may not be perfectly aligned to beat 1. on your op-xy: press com → m3 and enable clock send for tighter sync.';
+      warning = 'no midi clock detected — stems may not be perfectly aligned to beat 1. on your op-xy: press com → m3 and set clock to "in" for tighter sync.';
       console.warn(`[Bounce] WARNING: ${warning}`);
     }
 

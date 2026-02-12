@@ -78,7 +78,7 @@ export function ConnectScreen({ onConnected }: ConnectScreenProps) {
       {clockMissing && (
         <div className="clock-banner">
           <span className="clock-banner-text">
-            no midi clock detected — on your op-xy press <strong>com → m3</strong> and enable <strong>clock send</strong> + <strong>notes receive</strong>, then try again
+            no midi clock detected — on your op-xy press <strong>com → m3</strong> and set <strong>clock</strong> and <strong>notes</strong> to <strong>in</strong>, then try again
           </span>
         </div>
       )}
@@ -108,7 +108,7 @@ export function ConnectScreen({ onConnected }: ConnectScreenProps) {
         </div>
         <div className="step">
           <span className="step-num">2</span>
-          on op-xy: press com → m3, enable clock send + notes receive
+          on op-xy: press com → m3, set clock and notes to "in"
         </div>
         <div className="step">
           <span className="step-num">3</span>
