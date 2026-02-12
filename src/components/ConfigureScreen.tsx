@@ -85,9 +85,8 @@ export function ConfigureScreen({ onStart, midi }: ConfigureScreenProps) {
       {detectFailed && !bpmDetected && (
         <div className="clock-banner">
           <span className="clock-banner-text">
-            no midi clock detected — on your op-xy: press <strong>com → m3</strong> and enable <strong>clock send</strong>
+            no midi clock detected — on your op-xy press <strong>com → m3</strong> and enable <strong>clock send</strong> + <strong>notes receive</strong>, then hit detect again
           </span>
-          <button className="clock-banner-dismiss" onClick={() => setDetectFailed(false)}>×</button>
         </div>
       )}
 
@@ -146,7 +145,7 @@ export function ConfigureScreen({ onStart, midi }: ConfigureScreenProps) {
               onClick={handleDetectBpm}
               disabled={detecting || !midi}
             >
-              {detecting ? 'reading...' : bpmDetected ? `${tempo} bpm` : 'detect'}
+              {detecting ? 'reading...' : bpmDetected ? `${tempo} bpm` : detectFailed ? 'retry' : 'detect'}
             </button>
             {bpmDetected && <span className="auto-detected">from op-xy</span>}
           </div>
@@ -227,9 +226,9 @@ export function ConfigureScreen({ onStart, midi }: ConfigureScreenProps) {
       <button
         className="btn-primary"
         onClick={onStart}
-        disabled={enabledCount === 0}
+        disabled={enabledCount === 0 || !bpmDetected}
       >
-        start bounce
+        {bpmDetected ? 'start bounce' : 'detect bpm to start'}
       </button>
 
       {midi && <MidiTestPanel midi={midi} />}
