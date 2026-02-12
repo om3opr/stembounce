@@ -20,10 +20,29 @@ export class BounceEngine {
   private midi: MidiController;
   private recorder: AudioRecorder;
   private cancelled = false;
-
   constructor(midi: MidiController, recorder: AudioRecorder) {
     this.midi = midi;
     this.recorder = recorder;
+  }
+
+  /**
+   * Check if recorded audio is effectively silent (RMS below threshold).
+   * Returns true if the audio is too quiet to be a real recording.
+   */
+  private isSilent(left: Float32Array, right: Float32Array): boolean {
+    const threshold = 0.0005; // ~-66dB — well below any real audio
+    let sum = 0;
+    const len = Math.min(left.length, right.length);
+    if (len === 0) return true;
+    // Sample every 64th value for speed
+    let count = 0;
+    for (let i = 0; i < len; i += 64) {
+      sum += left[i] * left[i] + right[i] * right[i];
+      count++;
+    }
+    const rms = Math.sqrt(sum / (count * 2));
+    console.log(`[Bounce] Audio RMS: ${rms.toFixed(6)} (threshold: ${threshold})`);
+    return rms < threshold;
   }
 
   cancel(): void {
@@ -68,7 +87,7 @@ export class BounceEngine {
     passName: string,
     completedStems: StemResult[],
     onProgress: BounceCallback
-  ): Promise<{ left: Float32Array; right: Float32Array; trimSamples: number } | null> {
+  ): Promise<{ left: Float32Array; right: Float32Array; trimSamples: number; warning?: string } | null> {
     const totalWait = config.songLengthMs + config.tailMs;
 
     // Start the beat-1 sync listener
@@ -139,7 +158,25 @@ export class BounceEngine {
       config.sampleRate
     );
 
-    return { left, right, trimSamples };
+    // Detect issues and generate warnings
+    let warning: string | undefined;
+
+    if (this.isSilent(left, right)) {
+      if (beat1Ms === null) {
+        // No clock AND silent → transport + clock are both off
+        warning = 'recorded audio is silent and no midi clock detected. on your op-xy: press com → m3 and enable transport receive + clock send.';
+      } else {
+        // Got clock but silent → transport might work but mute CC isn't being received
+        warning = 'recorded audio is silent — the op-xy may not be responding to mute/unmute. on your op-xy: press com → m3 and make sure "other" (cc) receive is enabled.';
+      }
+      console.warn(`[Bounce] WARNING: ${warning}`);
+    } else if (beat1Ms === null && passIndex === 1) {
+      // Audio is fine but no clock — alignment may be off
+      warning = 'no midi clock detected — stems may not be perfectly aligned to beat 1. on your op-xy: press com → m3 and enable clock send for tighter sync.';
+      console.warn(`[Bounce] WARNING: ${warning}`);
+    }
+
+    return { left, right, trimSamples, warning };
   }
 
   async run(
@@ -182,6 +219,20 @@ export class BounceEngine {
       );
 
       if (result) {
+        // Surface any warnings from this pass
+        if (result.warning) {
+          onProgress({
+            currentTrack: i + 1,
+            totalTracks,
+            currentTrackName: track.name,
+            trackElapsedMs: config.songLengthMs + config.tailMs,
+            trackTotalMs: config.songLengthMs + config.tailMs,
+            completedStems: [...completedStems],
+            isRecording: false,
+            warning: result.warning,
+          });
+        }
+
         rawRecordings.push({
           trackNumber: track.trackNumber,
           name: track.name,

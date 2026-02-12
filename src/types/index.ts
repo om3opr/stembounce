@@ -54,4 +54,5 @@ export interface BounceProgress {
   trackTotalMs: number;
   completedStems: StemResult[];
   isRecording: boolean;
+  warning?: string;
 }

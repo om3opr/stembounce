@@ -14,7 +14,7 @@ export function BounceScreen({ audioStream, onCancel }: BounceScreenProps) {
 
   if (!progress) return null;
 
-  const { currentTrack, totalTracks, currentTrackName, trackElapsedMs, trackTotalMs, completedStems, isRecording } = progress;
+  const { currentTrack, totalTracks, currentTrackName, trackElapsedMs, trackTotalMs, completedStems, isRecording, warning } = progress;
 
   const trackProgress = trackTotalMs > 0 ? trackElapsedMs / trackTotalMs : 0;
 
@@ -115,6 +115,13 @@ export function BounceScreen({ audioStream, onCancel }: BounceScreenProps) {
       </p>
 
       <AudioMeter stream={audioStream} active={isRecording} />
+
+      {warning && (
+        <div className="bounce-warning">
+          <span className="bounce-warning-icon">!</span>
+          {warning}
+        </div>
+      )}
 
       <button className="btn-danger" onClick={onCancel}>
         cancel bounce

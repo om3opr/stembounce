@@ -140,7 +140,7 @@ export function ConfigureScreen({ onStart, midi }: ConfigureScreenProps) {
               {detecting ? 'reading...' : bpmDetected ? `${tempo} bpm` : 'detect'}
             </button>
             {bpmDetected && <span className="auto-detected">from op-xy</span>}
-            {detectFailed && <span className="detect-hint">enable clock out on op-xy</span>}
+            {detectFailed && <span className="detect-hint">no clock — press com → m3 on op-xy, enable clock send</span>}
           </div>
         </div>
 

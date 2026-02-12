@@ -1160,6 +1160,35 @@ body::before {
   font-variant-numeric: tabular-nums;
 }
 
+.bounce-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  width: 100%;
+  background: rgba(240, 192, 64, 0.06);
+  border-left: 3px solid var(--yellow);
+  color: var(--text-secondary);
+  padding: 0.75rem 1rem;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  animation: popIn 0.35s var(--ease-spring) both;
+}
+
+.bounce-warning-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--yellow);
+  color: var(--g0);
+  font-size: 0.65rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
 /* ============================================================
    10. AUDIO METER
    ============================================================ */

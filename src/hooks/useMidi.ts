@@ -6,6 +6,7 @@ export function useMidi() {
   const controllerRef = useRef(new MidiController());
   const [connected, setConnected] = useState(false);
   const [deviceName, setDeviceName] = useState<string | null>(null);
+  const [hasInput, setHasInput] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const connect = useCallback(async (profile: DeviceProfile) => {
@@ -17,6 +18,7 @@ export function useMidi() {
       if (result) {
         setConnected(true);
         setDeviceName(result.output.name || profile.name);
+        setHasInput(result.input !== null);
         return true;
       } else {
         setError('OP-XY not found. Make sure it is connected via USB-C.');
@@ -39,6 +41,7 @@ export function useMidi() {
     controller: controllerRef.current,
     connected,
     deviceName,
+    hasInput,
     error,
     connect,
     disconnect,
