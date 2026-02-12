@@ -33,13 +33,33 @@ Each stem is automatically aligned to beat 1 using MIDI Clock sync, so you can d
 - **Real-time audio meter** — Visual feedback during recording
 - **MIDI diagnostics panel** — Debug transport, mute, and raw MIDI messages
 
-## OP-XY Settings
+## OP-XY Setup (Important!)
 
-Make sure these are enabled on your OP-XY before using StemBounce:
+StemBounce needs three MIDI settings enabled on your OP-XY. Without these, the app can't control playback or mute tracks.
 
-- **MIDI → Clock Out**: `On` (required for BPM detection + beat-1 sync)
-- **MIDI → Control In**: `On` (required for mute/unmute CC messages)
-- **MIDI → Transport In**: `On` (required for Start/Stop)
+### How to configure:
+
+1. On your OP-XY, press **`COM`**
+2. Press **`M3`** to enter the **devices** view
+3. You'll see toggles for **clock**, **notes**, and **other** (CCs) — make sure the following are enabled:
+
+| Setting | What to enable | Why |
+|---------|---------------|-----|
+| **Clock** | Send **on** | So StemBounce can detect your BPM and align stems to beat 1 |
+| **Notes** | Receive **on** | Standard MIDI communication |
+| **Other** (CCs) | Receive **on** | So StemBounce can mute/unmute individual tracks via CC 9 |
+
+4. Press **`M3`** again to see **page 2** of MIDI device settings — make sure **transport receive** is enabled so the OP-XY responds to Start/Stop commands
+
+### Quick checklist:
+
+- [ ] OP-XY connected via USB-C (not just charging — use a data cable)
+- [ ] **COM → M3**: Clock send = on
+- [ ] **COM → M3**: Other (CCs) receive = on
+- [ ] **COM → M3 → M3**: Transport receive = on
+- [ ] Using **Chrome** (Firefox/Safari don't support Web MIDI)
+
+> **Tip:** If StemBounce connects but the OP-XY doesn't play or tracks don't mute, 99% of the time it's one of these settings. The MIDI diagnostics panel at the bottom of the configure screen can help you debug — try the START and Mute buttons to test.
 
 ## Tech Stack
 
