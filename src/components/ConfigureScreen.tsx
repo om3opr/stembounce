@@ -30,8 +30,7 @@ export function ConfigureScreen({ onStart, midi }: ConfigureScreenProps) {
   } = useAppStore();
 
   const [detecting, setDetecting] = useState(false);
-  const [bpmDetected, setBpmDetected] = useState(false);
-  const [detectFailed, setDetectFailed] = useState(false);
+  const [redetected, setRedetected] = useState(false);
 
   const songLengthMs = barsToMs(songLengthBars, tempo);
   const enabledCount = tracks.filter((t) => t.enabled).length;
@@ -41,30 +40,25 @@ export function ConfigureScreen({ onStart, midi }: ConfigureScreenProps) {
   const handleDetectBpm = async () => {
     if (!midi) return;
     setDetecting(true);
-    setBpmDetected(false);
-    setDetectFailed(false);
+    setRedetected(false);
 
     let resolved = false;
 
-    // Start listening for clock + CC80
     await midi.startBpmDetection((bpm) => {
       if (!resolved) {
         resolved = true;
         setTempo(bpm);
-        setBpmDetected(true);
+        setRedetected(true);
       }
     });
 
-    // Briefly play so the OP-XY sends clock/tempo data
     midi.play(opXyProfile);
 
-    // Wait up to 4 seconds for detection
     for (let i = 0; i < 40; i++) {
       await wait(100);
       if (resolved) break;
     }
 
-    // Stop playback
     midi.stop(opXyProfile);
     midi.stopBpmDetection();
     setDetecting(false);
@@ -73,23 +67,13 @@ export function ConfigureScreen({ onStart, midi }: ConfigureScreenProps) {
       const detected = midi.getDetectedBpm();
       if (detected) {
         setTempo(detected);
-        setBpmDetected(true);
-      } else {
-        setDetectFailed(true);
+        setRedetected(true);
       }
     }
   };
 
   return (
     <div className="screen configure-screen">
-      {detectFailed && !bpmDetected && (
-        <div className="clock-banner">
-          <span className="clock-banner-text">
-            no midi clock detected — on your op-xy press <strong>com → m3</strong> and enable <strong>clock send</strong> + <strong>notes receive</strong>, then hit detect again
-          </span>
-        </div>
-      )}
-
       <span className="section-label">tracks</span>
 
       <div className="track-grid">
@@ -145,9 +129,9 @@ export function ConfigureScreen({ onStart, midi }: ConfigureScreenProps) {
               onClick={handleDetectBpm}
               disabled={detecting || !midi}
             >
-              {detecting ? 'reading...' : bpmDetected ? `${tempo} bpm` : detectFailed ? 'retry' : 'detect'}
+              {detecting ? 'reading...' : 're-detect'}
             </button>
-            {bpmDetected && <span className="auto-detected">from op-xy</span>}
+            {redetected && <span className="auto-detected">updated</span>}
           </div>
         </div>
 
@@ -226,9 +210,9 @@ export function ConfigureScreen({ onStart, midi }: ConfigureScreenProps) {
       <button
         className="btn-primary"
         onClick={onStart}
-        disabled={enabledCount === 0 || !bpmDetected}
+        disabled={enabledCount === 0}
       >
-        {bpmDetected ? 'start bounce' : 'detect bpm to start'}
+        start bounce
       </button>
 
       {midi && <MidiTestPanel midi={midi} />}

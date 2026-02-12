@@ -3,6 +3,7 @@ import { useMidi } from '../hooks/useMidi';
 import { useAudioInput } from '../hooks/useAudioInput';
 import { opXyProfile } from '../devices/op-xy';
 import { useAppStore } from '../store';
+import { wait } from '../utils/time';
 import type { MidiController } from '../core/midi';
 
 interface ConnectScreenProps {
@@ -10,22 +11,63 @@ interface ConnectScreenProps {
 }
 
 export function ConnectScreen({ onConnected }: ConnectScreenProps) {
-  const { setScreen } = useAppStore();
+  const { setScreen, setTempo } = useAppStore();
   const midi = useMidi();
   const audio = useAudioInput();
   const [connecting, setConnecting] = useState(false);
+  const [clockMissing, setClockMissing] = useState(false);
 
   const handleConnect = async () => {
     setConnecting(true);
+    setClockMissing(false);
 
     const midiOk = await midi.connect(opXyProfile);
     const stream = await audio.connect(48000);
 
+    if (!midiOk || !stream) {
+      setConnecting(false);
+      return;
+    }
+
+    // MIDI + audio connected — now check for clock
+    let bpmResolved = false;
+
+    await midi.controller.startBpmDetection((bpm) => {
+      if (!bpmResolved) {
+        bpmResolved = true;
+        setTempo(bpm);
+      }
+    });
+
+    // Briefly play to trigger clock data from OP-XY
+    midi.controller.play(opXyProfile);
+
+    // Wait up to 4 seconds for clock
+    for (let i = 0; i < 40; i++) {
+      await wait(100);
+      if (bpmResolved) break;
+    }
+
+    midi.controller.stop(opXyProfile);
+
+    // Also check getDetectedBpm in case callback fired slightly late
+    if (!bpmResolved) {
+      const detected = midi.controller.getDetectedBpm();
+      if (detected) {
+        bpmResolved = true;
+        setTempo(detected);
+      }
+    }
+
+    midi.controller.stopBpmDetection();
     setConnecting(false);
 
-    if (midiOk && stream) {
+    if (bpmResolved) {
       onConnected(midi.controller, stream);
       setScreen('configure');
+    } else {
+      // Clock not detected — stay on connect screen
+      setClockMissing(true);
     }
   };
 
@@ -33,6 +75,14 @@ export function ConnectScreen({ onConnected }: ConnectScreenProps) {
 
   return (
     <div className="screen connect-screen">
+      {clockMissing && (
+        <div className="clock-banner">
+          <span className="clock-banner-text">
+            no midi clock detected — on your op-xy press <strong>com → m3</strong> and enable <strong>clock send</strong> + <strong>notes receive</strong>, then try again
+          </span>
+        </div>
+      )}
+
       <div className="connect-hero">
         <div className="connect-icon">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -58,11 +108,11 @@ export function ConnectScreen({ onConnected }: ConnectScreenProps) {
         </div>
         <div className="step">
           <span className="step-num">2</span>
-          click connect below
+          on op-xy: press com → m3, enable clock send + notes receive
         </div>
         <div className="step">
           <span className="step-num">3</span>
-          allow midi + audio access
+          click connect below and allow midi + audio access
         </div>
       </div>
 
@@ -73,7 +123,7 @@ export function ConnectScreen({ onConnected }: ConnectScreenProps) {
         onClick={handleConnect}
         disabled={connecting}
       >
-        {connecting ? 'connecting...' : 'connect'}
+        {connecting ? 'connecting...' : clockMissing ? 'retry' : 'connect'}
       </button>
 
       <p className="footnote">

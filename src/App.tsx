@@ -57,12 +57,6 @@ function App() {
     (midi: MidiController, audioStream: MediaStream) => {
       midiRef.current = midi;
       streamRef.current = audioStream;
-
-      // Start listening for MIDI Clock to auto-detect BPM
-      midi.startBpmDetection((bpm) => {
-        console.log(`[App] BPM detected from OP-XY: ${bpm}`);
-        useAppStore.getState().setTempo(bpm);
-      });
     },
     []
   );
