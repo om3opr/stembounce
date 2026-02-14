@@ -1624,9 +1624,33 @@ body::before {
    ============================================================ */
 
 .app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
   padding-top: 2rem;
-  text-align: center;
   animation: fadeIn 1s var(--ease-out) 0.6s both;
+}
+
+.footer-install {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-tertiary);
+  font-family: inherit;
+  font-size: 0.65rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 50px;
+  cursor: pointer;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+  transition: all 0.25s var(--ease-out);
+  animation: fadeIn 0.4s var(--ease-out) both;
+}
+
+.footer-install:hover {
+  color: var(--orange);
+  border-color: var(--orange);
+  background: var(--orange-dim);
 }
 
 .footer-link {

@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useState, useEffect } from 'react';
 import { useAppStore } from './store';
 import { ConnectScreen } from './components/ConnectScreen';
 import { ConfigureScreen } from './components/ConfigureScreen';
@@ -47,6 +47,26 @@ function App() {
     setStems,
     reset,
   } = useAppStore();
+
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const result = await installPrompt.userChoice;
+    if (result.outcome === 'accepted') {
+      setInstallPrompt(null);
+    }
+  };
 
   const midiRef = useRef<MidiController | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -163,6 +183,11 @@ function App() {
           </svg>
           made by om3
         </a>
+        {installPrompt && (
+          <button className="footer-install" onClick={handleInstall}>
+            install app
+          </button>
+        )}
       </footer>
     </div>
   );
